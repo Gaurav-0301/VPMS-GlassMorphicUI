@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-const Navbar = () => {
+const Navbar = (props) => {
   return (
     <>
       <div className="navbar bg-white text-black shadow-sm">
@@ -13,9 +13,9 @@ const Navbar = () => {
       <ul
         tabIndex="-1"
         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-        <Link to="/">Home</Link>
-        <Link to="/book">Book</Link>
-        <Link to="/status">Status</Link>
+        <Link to={props.link1}>{props.opt1}</Link>
+        <Link to={props.link2}>{props.opt2}</Link>
+        <Link to={props.link3}>{props.opt3}</Link>
       </ul>
     </div>
     <a className="btn btn-ghost text-xl">GateKeeper</a>
@@ -23,15 +23,15 @@ const Navbar = () => {
   <div className=" font-semibold navbar-center hidden lg:flex">
   <ul className="menu menu-horizontal flex items-center gap-8 px-5">
     <li>
-      <Link to="/">Home</Link>
+      <Link to={props.link1}>{props.opt1}</Link>
     </li>
 
     <li>
-      <Link to="/book">Book</Link>
+     <Link to={props.link2}>{props.opt2}</Link>
     </li>
 
     <li>
-      <Link to="/status">Status</Link>
+      <Link to={props.link3}>{props.opt3}</Link>
     </li>
   </ul>
 </div>

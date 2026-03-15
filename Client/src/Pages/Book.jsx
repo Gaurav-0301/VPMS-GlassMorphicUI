@@ -8,7 +8,7 @@ const Book = () => {
   return (
     <>
     <Backdrop/>
-    <Navbar/>
+    <Navbar opt1={"Home"} opt2={"Book"} opt3={"Status"} link1={"/"} link2={"/book"} link3={"/status"}/>
     <VisitorRegistration/>
     <Footer opt1={"/"} opt2={"/book"} opt3={"/status"}/>
       

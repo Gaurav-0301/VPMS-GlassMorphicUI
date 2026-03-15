@@ -1,10 +1,10 @@
 import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 
-import Book  from './Sections/Book'
+import Book  from './Pages/Book'
 import Status from './Pages/Status'
 import User from './Dashboards/User'
-
+import Admin from './Dashboards/Admin'
 const App = () => {
   return (
     <>
@@ -12,6 +12,7 @@ const App = () => {
         <Route path="/" element={<User />} />
         <Route path="/book" element={<Book />} />
          <Route path="/status" element={<Status/>} />
+         <Route path="/admin" element={<Admin />} />
       </Routes>
     </>
   )
