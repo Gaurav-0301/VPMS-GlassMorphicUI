@@ -8,31 +8,33 @@ const HostPage = () => {
   const [visitors, setVisitors] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
 
-  // 1. Fetch Data on Mount (Empty dependency array to prevent infinite loop)
-  useEffect(() => {
-    const fetchVisitorData = async () => {
-      try {
-        const response = await axios.get("http://localhost:2724/visitordata");
-        if (response.data.success) {
-          setVisitors(response.data.data);
-        }
-      } catch (error) {
-        console.error("Visitor data error in hostpage:", error);
-      }
-    };
-    fetchVisitorData();
-  }, []);
+  // Fetch only visitors assigned to THIS host
+ useEffect(() => {
+  const fetchVisitorData = async () => {
+    try {
+      // 1. Grab the ID we saved during Login
+      const currentHostId = localStorage.getItem("userId");
 
- 
+      // 2. Attach it to the request so the backend knows who is asking
+      const response = await axios.get(`http://localhost:2724/visitordata?hostId=${currentHostId}`);
+      
+      if (response.data.success) {
+        setVisitors(response.data.data);
+      }
+    } catch (error) {
+      console.error("Visitor data error in hostpage:", error);
+    }
+  };
+  fetchVisitorData();
+}, []);
+
   const handleStatusUpdate = async (id, newStatus) => {
     try {
-     
       const response = await axios.put(`http://localhost:2724/statusupdate/${id}`, { 
         status: newStatus 
       });
 
       if (response.data.success) {
-        // Update local state so UI reflects change immediately without refresh
         setVisitors(prev => 
           prev.map(v => v._id === id ? { ...v, status: newStatus } : v)
         );
@@ -48,16 +50,18 @@ const HostPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-8 bg-slate-50 min-h-screen">
+    <div className="max-w-7xl mx-auto p-8 bg-slate-50 min-h-screen font-sans">
       <header className="mb-10">
         <h1 className="text-4xl font-black text-slate-800 tracking-tight">Host Dashboard</h1>
-        <p className="text-slate-500 font-medium">Manage your visitor approvals and check-in history.</p>
+        {/* Added dynamic greeting using saved name */}
+        <p className="text-slate-500 font-medium">
+          Welcome back, {localStorage.getItem("userName") || "Host"}. Manage your specific visitor requests.
+        </p>
       </header>
 
       <TabSwitcher 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
-        // Showing only the count for the logged-in context
         pendingCount={visitors.filter(v => v.status === 'Pending').length} 
       />
 

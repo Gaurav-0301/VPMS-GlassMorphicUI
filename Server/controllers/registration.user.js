@@ -1,47 +1,38 @@
 const Reg = require('../models/Registration.model');
 
-module.exports.createRegistration = async (req, res) => {
-    const { name, purpose, number, host, email, url, status } = req.body;
+const createRegistration = async (req, res) => {
+    // 1. Extract hostId along with other fields
+    const { name, purpose, number, host, hostId, email, url } = req.body;
 
     try {
-        
-        if (!name || !purpose || !number || !host || !url) {
-            return res.status(400).json({
-                success: false,
-                message: "All required fields (name, purpose, number, host, url) are required"
-            });
-        }
-
-        // Create the registration document
-        const newRegistration = await Reg.create({
+        // 2. Pass hostId to the creation object
+        const newVisitor = await Reg.create({
             name,
             purpose,
             number,
-            host,
+            host,  
+            hostId,
             email,
-            url,
-            status // This will use the 'Pending' default from your schema if not provided
+            url
         });
 
-        // Send success response
         return res.status(201).json({
             success: true,
             message: "Registration successful",
-            data: newRegistration
+            data: newVisitor
         });
 
     } catch (error) {
-        console.error("createregistration controller error: ", error);
-        
-        return res.status(500).json({
+        console.error("Registration Error:", error);
+        return res.status(400).json({
             success: false,
-            message: "Internal Server Error during registration"
+            message: error.message
         });
     }
 };
 
-
-module.exports.registrationStatus = async (req, res) => {
+module.exports = { createRegistration };
+const registrationStatus = async (req, res) => {
   const { number } = req.params;
 
   try {
@@ -77,3 +68,5 @@ module.exports.registrationStatus = async (req, res) => {
     });
   }
 };
+
+module.exports={createRegistration,registrationStatus}

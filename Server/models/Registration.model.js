@@ -21,6 +21,12 @@ const registrationSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    // ADD THIS FIELD:
+    hostId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'StaffCredential',
+        required: true
+    },
     email: {
         type: String,
         lowercase: true,

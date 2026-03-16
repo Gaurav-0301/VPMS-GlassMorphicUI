@@ -7,12 +7,12 @@ const VisitorRegistration = () => {
     name: '',
     purpose: '',
     number: '',
-    host: '',
+    host: '',   // Host Name (String)
+    hostId: '', // Host ID (MongoDB ObjectId) - THIS FIXES THE ERROR
     email: '',
     url: null 
   });
 
-  // State for dynamic hosts
   const [availableHosts, setAvailableHosts] = useState([]);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,13 +20,12 @@ const VisitorRegistration = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // --- Fetch Hosts from Database ---
+  // Fetch all staff and filter for Hosts
   useEffect(() => {
     const fetchHosts = async () => {
       try {
         const response = await axios.get("http://localhost:2724/staffdata");
         if (response.data.success) {
-          // Only show staff members who are registered as 'Host'
           const hostsOnly = response.data.data.filter(staff => staff.role === 'Host');
           setAvailableHosts(hostsOnly);
         }
@@ -70,8 +69,9 @@ const VisitorRegistration = () => {
 
   const handleVisit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.number || !formData.url || !formData.host) {
-      alert("Please fill all required fields and capture a photo.");
+    // Validation: Now checking for hostId specifically
+    if (!formData.name || !formData.number || !formData.url || !formData.hostId) {
+      alert("Please fill all required fields, select a host, and capture a photo.");
       return;
     }
 
@@ -80,7 +80,8 @@ const VisitorRegistration = () => {
       const response = await axios.post(`http://localhost:2724/register`, formData);
       if (response.data.success) {
         alert("Visit booked! Ref ID: " + response.data.data.refId);
-        setFormData({ name: '', purpose: '', number: '', host: '', email: '', url: null });
+        // Reset form including hostId
+        setFormData({ name: '', purpose: '', number: '', host: '', hostId: '', email: '', url: null });
       }
     } catch (error) {
       alert(error.response?.data?.message || "Registration error.");
@@ -90,7 +91,7 @@ const VisitorRegistration = () => {
   };
 
   return (
-    <div className="my-5 max-w-4xl mx-auto p-6 text-black bg-white rounded-3xl shadow-sm border border-slate-100">
+    <div className="my-5 max-w-4xl mx-auto p-6 text-black bg-white rounded-3xl shadow-sm border border-slate-100 font-sans">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Visitor Registration</h2>
         <X className="text-slate-400 cursor-pointer hover:text-slate-600" />
@@ -120,20 +121,27 @@ const VisitorRegistration = () => {
             onChange={(val) => setFormData({...formData, number: val})}
           />
           
-          {/* Dynamic Host Dropdown */}
+          {/* UPDATED DYNAMIC HOST DROPDOWN */}
           <div className="space-y-1.5">
              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <Users size={18}/> Select Host
              </label>
              <select 
                required
-               value={formData.host}
-               onChange={(e) => setFormData({...formData, host: e.target.value})}
+               value={formData.hostId} 
+               onChange={(e) => {
+                 const selectedHost = availableHosts.find(h => h._id === e.target.value);
+                 setFormData({
+                   ...formData, 
+                   hostId: e.target.value, 
+                   host: selectedHost ? selectedHost.name : '' 
+                 });
+               }}
                className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
              >
                 <option value="">Select an employee</option>
                 {availableHosts.map((host) => (
-                  <option key={host._id} value={host.name}>
+                  <option key={host._id} value={host._id}>
                     {host.name} ({host.dept})
                   </option>
                 ))}
@@ -210,4 +218,4 @@ const InputField = ({ icon, label, placeholder, value, onChange }) => (
   </div>
 );
 
-export default VisitorRegistration; 
+export default VisitorRegistration;

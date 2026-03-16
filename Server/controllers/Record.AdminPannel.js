@@ -1,5 +1,7 @@
 const reg = require('../models/Registration.model');
 const staff = require('../models/Staff.credential');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // 1. Get total visitor count
 const CountVisitor = async (req, res) => {
@@ -44,39 +46,42 @@ const CountStaff = async (req, res) => {
     }
 };
 
-// 3. Get all visitor records
-const visitorData = async (req, res) => {
+const staffData = async (req, res) => {
     try {
-        const data = await reg.find();
-        return res.status(200).json({
-            success: true,
-            data: data
-        });
+        const data = await staff.find({}); // Or whatever your model name is
+        res.status(200).json({ success: true, data });
     } catch (error) {
-        return res.status(500).json({
-            success: false, // Fixed: was true in your snippet
-            message: "visitorData error"
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// 4. Get all staff records
-const staffData = async (req, res) => {
+const visitorData = async (req, res) => {
     try {
-        const data = await staff.find();
+        // Capture hostId from the URL query: /visitordata?hostId=...
+        const { hostId } = req.query; 
+
+        let filter = {};
+        
+        // If a hostId is provided, only fetch visitors for that specific host
+        if (hostId && hostId !== "undefined") {
+            filter = { hostId: hostId };
+        }
+
+        const data = await reg.find(filter).sort({ createdAt: -1 });
+
         return res.status(200).json({
             success: true,
+            count: data.length,
             data: data
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: "staffData error"
+            message: "Error fetching visitor data",
+            error: error.message
         });
     }
 };
-
-
 const deletevisitors=async(req,res)=>{
 try {
     await reg.deleteMany({});
@@ -117,13 +122,14 @@ const deleteStaff = async (req, res) => {
 };
 
 
-// Export all functions correctly as an object
+
+
+
+// 6. Login Staff
+
+// Updated module.exports
 module.exports = {
-    CountVisitor,
-    CountStaff,
-    visitorData,
-    staffData,
-    deletevisitors,
-    deleteStaff
+    CountVisitor, CountStaff, visitorData, staffData, 
+    deletevisitors, deleteStaff, 
 };
 
