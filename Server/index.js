@@ -12,6 +12,7 @@ const router = require("./routes/user.routes");
 const regRouter = require("./routes/staff.reg.routes");
 const recordRouter=require('./routes/record.count.routes');
 const hostRouter=require("./routes/host.routes");
+const securityRouter=require("./routes/security.routes")
 const PORT = process.env.PORT || 5000;
 
 
@@ -24,6 +25,7 @@ app.use("/", router);
 app.use("/", regRouter);
 app.use("/", recordRouter);
 app.use("/",hostRouter);
+app.use("/",securityRouter);
 
 app.get("/", (req, res) => {
     res.status(200).send("Hello Jee");

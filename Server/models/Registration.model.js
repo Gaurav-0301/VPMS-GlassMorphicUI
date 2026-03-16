@@ -29,8 +29,8 @@ const registrationSchema = mongoose.Schema({
     url: {
         type: String, 
         required: true
-    },
-    status: {
+    }
+    ,status: {
         type: String,
         enum: ['Pending', 'Approved', 'Rejected'],
         default: 'Pending'
@@ -38,6 +38,17 @@ const registrationSchema = mongoose.Schema({
     refId: {
         type: String,
         default: () => Math.random().toString(36).substring(2, 10).toUpperCase()
+    },
+   
+    isInside: { 
+        type: Boolean, 
+        default: false 
+    },
+    lastCheckIn: { 
+        type: Date 
+    },
+    lastCheckOut: { 
+        type: Date 
     }
 }, { timestamps: true }); 
 

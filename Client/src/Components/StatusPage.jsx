@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Search, Clock, User, QrCode, X, Loader2, SearchX } from 'lucide-react';
+import { Search, Clock, User, QrCode, X, Loader2, SearchX, CheckCircle2 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react'; // New Import
 
 const StatusPage = ({ statusData, onSearch, searchQuery, setSearchQuery }) => {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Wrapper function to handle the loading state
   const handleSearchClick = async () => {
     if (!searchQuery) return;
     setLoading(true);
     setHasSearched(true);
-    await onSearch(); // Trigger the API call passed from parent
+    await onSearch();
     setLoading(false);
   };
 
@@ -46,7 +46,7 @@ const StatusPage = ({ statusData, onSearch, searchQuery, setSearchQuery }) => {
         </div>
       </div>
 
-      {/* 1. BUFFERING / LOADING UI */}
+      {/* Loading & Not Found States (Unchanged) */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-12 space-y-4 animate-pulse">
            <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -54,21 +54,19 @@ const StatusPage = ({ statusData, onSearch, searchQuery, setSearchQuery }) => {
         </div>
       )}
 
-      {/* 2. NOT FOUND UI */}
       {!loading && hasSearched && !statusData && (
-        <div className="w-full max-w-3xl bg-white rounded-3xl p-12 border border-dashed border-slate-200 flex flex-col items-center text-center animate-in zoom-in-95 duration-300">
+        <div className="w-full max-w-3xl bg-white rounded-3xl p-12 border border-dashed border-slate-200 flex flex-col items-center text-center">
            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
               <SearchX size={40} className="text-slate-300" />
            </div>
            <h3 className="text-xl font-bold text-slate-800">No Record Found</h3>
            <p className="text-slate-500 max-w-xs mt-2">
-             We couldn't find a pass associated with <span className="font-bold text-slate-700">{searchQuery}</span>. 
-             Please check the number or register again.
+             We couldn't find a pass associated with <span className="font-bold text-slate-700">{searchQuery}</span>.
            </p>
         </div>
       )}
 
-      {/* 3. RESULTS SECTION (Only if data exists and not loading) */}
+      {/* Results Section */}
       {!loading && statusData && (
         <div className="w-full max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-500">
           
@@ -76,15 +74,15 @@ const StatusPage = ({ statusData, onSearch, searchQuery, setSearchQuery }) => {
             <div className="bg-orange-50 border border-orange-100 p-4 rounded-t-3xl border-b-0 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></div>
               <p className="text-sm text-orange-800 font-medium">
-                Waiting for <span className="font-bold">{statusData.host}</span> to approve your request...
+                Waiting for <span className="font-bold">{statusData.host}</span> to approve...
               </p>
             </div>
           )}
 
           <div className={`bg-white ${statusData.status === 'Pending' ? 'rounded-b-3xl' : 'rounded-3xl'} border border-slate-100 shadow-xl overflow-hidden`}>
-            <div className="bg-blue-50/50 px-8 py-5 border-b border-blue-50 flex justify-between items-center">
-              <div className="flex items-center gap-3 text-blue-600">
-                <Clock size={22} />
+            <div className={`px-8 py-5 border-b flex justify-between items-center ${statusData.status === 'Approved' ? 'bg-emerald-50/50 border-emerald-50' : 'bg-blue-50/50 border-blue-50'}`}>
+              <div className={`flex items-center gap-3 ${statusData.status === 'Approved' ? 'text-emerald-600' : 'text-blue-600'}`}>
+                {statusData.status === 'Approved' ? <CheckCircle2 size={22} /> : <Clock size={22} />}
                 <span className="text-xl font-bold tracking-tight">Status: {statusData.status}</span>
               </div>
               <span className="text-xs font-mono text-slate-400 uppercase tracking-widest">Ref: {statusData.refId}</span>
@@ -92,35 +90,45 @@ const StatusPage = ({ statusData, onSearch, searchQuery, setSearchQuery }) => {
 
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex gap-4">
-                <div className="w-24 h-24 bg-slate-200 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                <div className="w-24 h-24 bg-slate-100 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200">
                   {statusData.url ? (
                     <img src={statusData.url} alt="Visitor" className="w-full h-full object-cover" />
                   ) : (
-                    <User size={40} className="text-slate-400" />
+                    <User size={40} className="text-slate-300" />
                   )}
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xl font-bold text-slate-900">{statusData.name}</h3>
                   <p className="text-slate-500 text-sm font-medium">{statusData.purpose}</p>
-                  
-                  <div className="pt-4 space-y-1">
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Host Information</p>
+                  <div className="pt-4">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Host</p>
                     <p className="text-slate-800 font-semibold">{statusData.host}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-6 text-center space-y-3">
+              {/* DYNAMIC QR CODE SECTION */}
+              <div className={`rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 text-center space-y-3 transition-colors ${statusData.status === 'Approved' ? 'bg-white border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
                 {statusData.status === 'Approved' ? (
                   <>
-                    <QrCode size={80} className="text-slate-800" />
-                    <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">Pass Active</p>
+                    <div className="p-2 bg-white border border-slate-100 rounded-xl shadow-sm">
+                      <QRCodeSVG 
+                        value={statusData.refId} // The scanner will read this ID
+                        size={120}
+                        level="H" // High error correction
+                        includeMargin={false}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em]">Authorized Access</p>
+                      <p className="text-[9px] text-slate-400 font-medium">Show this at the gate</p>
+                    </div>
                   </>
                 ) : (
                   <>
-                    <QrCode size={64} className="text-slate-300 grayscale opacity-40" />
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter px-4">
-                      Pass will be available once approved
+                    <QrCode size={64} className="text-slate-200 grayscale opacity-40" />
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight px-4 leading-relaxed">
+                      QR Pass will generate <br/> after host approval
                     </p>
                   </>
                 )}

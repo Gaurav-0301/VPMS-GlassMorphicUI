@@ -5,3 +5,44 @@
   text-align: center;
 }
 
+/* Hide the default library text and file input */
+#reader__dashboard_section_csr span, 
+#reader__status_span {
+  display: none !important;
+}
+
+/* 1. Hide the messy text and duplicate links */
+#reader__dashboard_section_csr span, 
+#reader__status_span,
+#reader__dashboard_section_swaplink,
+#reader__camera_selection {
+  display: none !important;
+}
+
+/* 2. Hide the "Scan an Image File" link */
+#reader__dashboard_section_csr > div > span:last-child {
+  display: none !important;
+}
+
+/* 3. Style the "Stop Scanning" button to look professional */
+#reader button {
+  background-color: #ef4444 !important; /* Red-500 */
+  color: white !important;
+  border-radius: 0.75rem !important;
+  padding: 8px 16px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  letter-spacing: 0.05em !important;
+  border: none !important;
+  cursor: pointer;
+  margin-top: 15px !important;
+}
+
+/* 4. Fix the video container sizing */
+#reader video {
+  width: 100% !important;
+  border-radius: 1.5rem !important;
+  object-fit: cover !important;
+}
+
