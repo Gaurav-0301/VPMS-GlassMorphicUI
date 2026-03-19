@@ -41,55 +41,54 @@ const Analysis = () => {
   }, []);
 
   // --- Actions ---
-  const downloadLogs = () => {
-    const dataToExport = currentView === 'visitors' ? visitors : staffData;
+  const downloadLogs = async () => {
+  const dataToExport = currentView === 'visitors' ? visitors : staffData;
 
-    if (!dataToExport || dataToExport.length === 0) {
-      toast(`No ${currentView} records available to export.`);
-      return;
-    }
+  if (!dataToExport || dataToExport.length === 0) {
+    toast(`No ${currentView} records available to export.`);
+    return;
+  }
 
-    try {
-      // WHITELIST STRATEGY: Manually select ONLY text fields.
-      // This completely avoids the 32767 character limit error caused by images.
-      const cleanData = dataToExport.map((item) => {
-        if (currentView === 'visitors') {
-          return {
-            "Visitor Name": item.name || 'N/A',
-            "Contact": item.number || 'N/A',
-            "Host": item.host || 'N/A',
-            "Status": item.status || 'Pending',
-            "Date": item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A',
-            "Time": item.createdAt ? new Date(item.createdAt).toLocaleTimeString() : 'N/A'
-          };
-        } else {
-          return {
-            "Staff Name": item.name || 'N/A',
-            "Email": item.email || 'N/A',
-            "Department": item.dept || 'N/A',
-            "Role": item.role || 'N/A'
-          };
-        }
-      });
+  try {
+    // 🔥 Lazy load XLSX (only when needed)
+    const XLSX = await import('xlsx');
 
-      const worksheet = XLSX.utils.json_to_sheet(cleanData);
-      
-      // Auto-set column widths for a clean look
-      worksheet['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+    const cleanData = dataToExport.map((item) => {
+      if (currentView === 'visitors') {
+        return {
+          "Visitor Name": item.name || 'N/A',
+          "Contact": item.number || 'N/A',
+          "Host": item.host || 'N/A',
+          "Status": item.status || 'Pending',
+          "Date": item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A',
+          "Time": item.createdAt ? new Date(item.createdAt).toLocaleTimeString() : 'N/A'
+        };
+      } else {
+        return {
+          "Staff Name": item.name || 'N/A',
+          "Email": item.email || 'N/A',
+          "Department": item.dept || 'N/A',
+          "Role": item.role || 'N/A'
+        };
+      }
+    });
 
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, currentView.toUpperCase());
-      
-      const fileName = `Gatekeeper_${currentView}_${new Date().toISOString().split('T')[0]}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-      
-      setLogsDownloaded(true);
-      toast.success("Excel generated successfully! All image data was excluded to prevent errors.");
-    } catch (error) {
-      console.error("Export Logic Error:", error);
-      toast.error("Critical Export Error. See console for details.");
-    }
-  };
+    const worksheet = XLSX.utils.json_to_sheet(cleanData);
+    worksheet['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, currentView.toUpperCase());
+
+    const fileName = `Gatekeeper_${currentView}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    setLogsDownloaded(true);
+    toast.success("Excel generated successfully!");
+  } catch (error) {
+    console.error("Export Logic Error:", error);
+    toast.error("Export failed");
+  }
+};
 
   const deleteStaff = async (id) => {
     if (!window.confirm("Remove access for this staff member?")) return;
