@@ -7,11 +7,12 @@ const updateStatus = async (req, res) => {
     const { status } = req.body;
 
     // 1. Update the record in MongoDB
-    const updatedVisitor = await reg.findByIdAndUpdate(
-      id,
-      { $set: { status: status } },
-      { new: true }
-    );
+   // In updateStatus controller
+const updatedVisitor = await reg.findByIdAndUpdate(
+  id,
+  { $set: { status: status } },
+  { new: true }
+).lean(); 
 
     if (!updatedVisitor) {
       return res.status(404).json({
@@ -20,14 +21,18 @@ const updateStatus = async (req, res) => {
       });
     }
 
-    // 2. If the status is 'Approved', trigger the PDF Email utility
-    if (status === "Approved") {
-      // We run this as a "background" task so the API response isn't delayed
-      // by the time it takes to generate a PDF and send an email.
-      sendPassEmail(updatedVisitor).catch((err) => {
-        console.error("PDF/Email Generation Error:", err);
-      });
-    }
+    
+if (status === "Approved") {
+   
+    console.log(`Generating pass for Visitor: ${updatedVisitor.refId}`);
+    
+    sendPassEmail(updatedVisitor)
+        .then(() => console.log(`✅ Email sent successfully to ${updatedVisitor.email}`))
+        .catch((err) => {
+          
+            console.error(`❌ PDF/Email Error for ${updatedVisitor.refId}:`, err.message);
+        });
+}
 
     return res.status(200).json({
       success: true,
