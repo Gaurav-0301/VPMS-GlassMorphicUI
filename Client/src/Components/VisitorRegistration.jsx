@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, User, Phone, Mail, FileText, Users, X } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-
+const API = import.meta.env.VITE_API_URL;
 const VisitorRegistration = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -25,7 +25,7 @@ const VisitorRegistration = () => {
   useEffect(() => {
     const fetchHosts = async () => {
       try {
-        const response = await axios.get(" https://vpms-4neo.onrender.com/staffdata");
+        const response = await axios.get(" ${API}/staffdata");
         if (response.data.success) {
           const hostsOnly = response.data.data.filter(staff => staff.role === 'Host');
           setAvailableHosts(hostsOnly);
@@ -78,7 +78,7 @@ const VisitorRegistration = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(` https://vpms-4neo.onrender.com/register`, formData);
+      const response = await axios.post(` ${API}/register`, formData);
       if (response.data.success) {
         toast.success("Visit booked! Ref ID: " + response.data.data.refId);
         // Reset form including hostId

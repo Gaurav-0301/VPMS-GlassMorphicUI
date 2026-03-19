@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+const API = import.meta.env.VITE_API_URL;
 import axios from "axios";
 import { Lock, Mail, ShieldCheck, ArrowRight } from "lucide-react";
 import Backdrop from "./Backdrop";
@@ -21,7 +21,7 @@ const Login = () => {
 
     try {
       // Ensure the port matches your backend (2724)
-      const res = await axios.post(" https://vpms-4neo.onrender.com/staff/login", formData);
+      const res = await axios.post(`${API}/staff/login`, formData);
 
       if (res.data.success) {
         const { token, user } = res.data;
