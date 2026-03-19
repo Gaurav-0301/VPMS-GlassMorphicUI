@@ -24,7 +24,7 @@ Tools: JWT, PDFKit, Nodemailer, QRCode.
 
 Setup Instructions
 1. Clone the Repository
-  git clone https://github.com/your-username/gatekeeper.git
+  git clone [https://github.com/your-username/gatekeeper.git](https://github.com/Gaurav-0301/VPMS.git)
   cd gatekeeper
   
 2. Backend Setup
