@@ -52,6 +52,36 @@ const createStaff = async (req, res) => {
     }
 };
 
+const loginStaff = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const user = await staff.findOne({ email });
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        // Compare password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
+
+        // Generate Token
+        const token = jwt.sign({ id: user._id, role: user.role }, "YOUR_SECRET_KEY", { expiresIn: '1d' });
+
+        // Send back the role so the frontend knows where to redirect
+        res.status(200).json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                role: user.role,
+                dept: user.dept
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 
 const logoutStaff = async (req, res) => {
     try {

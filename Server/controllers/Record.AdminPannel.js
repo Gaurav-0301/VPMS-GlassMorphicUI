@@ -125,7 +125,7 @@ const deleteStaff = async (req, res) => {
 
 
 
-// 6. Login Staff
+
 
 // Updated module.exports
 module.exports = {
