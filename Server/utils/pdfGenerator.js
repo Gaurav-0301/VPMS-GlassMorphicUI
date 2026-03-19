@@ -9,7 +9,7 @@ const dataURIToBuffer = (dataURI) => {
 };
 
 const sendPassEmail = async (visitor) => {
-    // 1. Setup Transporter first (Moved outside for clarity)
+    
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         host: 'smtp.gmail.com',

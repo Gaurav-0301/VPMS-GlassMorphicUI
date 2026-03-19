@@ -1,5 +1,5 @@
 const reg = require("../models/Registration.model");
-const sendPassEmail = require("../utils/pdfGenerator"); // Import the utility we created
+const sendPassEmail = require("../utils/pdfGenerator"); 
 
 const updateStatus = async (req, res) => {
   try {
@@ -26,11 +26,15 @@ if (status === "Approved") {
    
     console.log(`Generating pass for Visitor: ${updatedVisitor.refId}`);
     
-    sendPassEmail(updatedVisitor)
-        .then(() => console.log(`✅ Email sent successfully to ${updatedVisitor.email}`))
+     await sendPassEmail(updatedVisitor)
+        .then(() => res.json({
+          messgae:`✅ Email sent successfully to ${updatedVisitor.email}`
+}))
         .catch((err) => {
-          
-            console.error(`❌ PDF/Email Error for ${updatedVisitor.refId}:`, err.message);
+          res.json({
+          messgae:(`❌ PDF/Email Error for ${updatedVisitor.refId}:`, err.message)
+})
+           
         });
 }
 
