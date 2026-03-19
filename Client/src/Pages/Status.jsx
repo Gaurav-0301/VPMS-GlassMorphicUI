@@ -5,7 +5,7 @@ import StatusPage from '../Components/StatusPage'
 import Footer from '../Components/Footer'
 import axios from 'axios'
 import toast from 'react-hot-toast'
-const API = import.meta.env.VITE_API_URL;
+
 const Status = () => {
   const[searchQuery,setSearchQuery]=useState("");
   const[statusData,setStatusData]=useState(null);
@@ -13,7 +13,7 @@ const Status = () => {
   const handleSearch=async()=>{
     try {
       console.log(searchQuery)
-     const response= await axios.get(`${API}/status/${searchQuery}`);
+     const response= await axios.get(`https://gatekeeper-05sf.onrender.com/status/${searchQuery}`);
      const result= await response.data;
           console.log(result)
      if(result.success){

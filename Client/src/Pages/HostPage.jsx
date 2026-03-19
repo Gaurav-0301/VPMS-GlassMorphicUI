@@ -4,7 +4,7 @@ import PendingView from '../Sections/PendingView';
 import HistoryView from '../Sections/HistoryView';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-const API = import.meta.env.VITE_API_URL;
+
 const HostPage = () => {
   const [visitors, setVisitors] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
@@ -17,7 +17,7 @@ const HostPage = () => {
       const currentHostId = localStorage.getItem("userId");
 
       // 2. Attach it to the request so the backend knows who is asking
-      const response = await axios.get(` ${API}/visitordata?hostId=${currentHostId}`);
+      const response = await axios.get(` https://gatekeeper-05sf.onrender.com/visitordata?hostId=${currentHostId}`);
       
       if (response.data.success) {
         setVisitors(response.data.data);
@@ -31,7 +31,7 @@ const HostPage = () => {
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
-      const response = await axios.put(` ${API}/statusupdate/${id}`, { 
+      const response = await axios.put(` https://gatekeeper-05sf.onrender.com/statusupdate/${id}`, { 
         status: newStatus 
       });
 

@@ -78,7 +78,8 @@ const VisitorRegistration = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(` ${API}/register`, formData);
+      const response = await axios.post(` https://gatekeeper-05sf.onrender.com/register`, formData);
+    
       if (response.data.success) {
         toast.success("Visit booked! Ref ID: " + response.data.data.refId);
         // Reset form including hostId

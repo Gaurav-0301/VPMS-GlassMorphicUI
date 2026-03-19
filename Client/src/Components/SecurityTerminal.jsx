@@ -3,7 +3,7 @@ import axios from 'axios';
 import SecurityStats from './SecurityStats';
 import QRScannerSection from '../Sections/QRScannerSection';
 import toast from 'react-hot-toast';
-const API = import.meta.env.VITE_API_URL;
+
 const SecurityTerminal = () => {
   const [stats, setStats] = useState({ inside: 0, totalToday: 0, completed: 0 });
 
@@ -11,7 +11,7 @@ const SecurityTerminal = () => {
   const processMovement = async (action, refId) => {
     try {
       // Standardized to port 2724 to match your backend
-      const res = await axios.put(`${API}/visitor/movement/${refId}`, { action });
+      const res = await axios.put(`https://gatekeeper-05sf.onrender.com/visitor/movement/${refId}`, { action });
       
       if (res.data.success) {
         setStats(prev => {

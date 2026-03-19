@@ -3,7 +3,8 @@ import { Html5Qrcode } from "html5-qrcode";
 import { LogIn, LogOut, QrCode, UserCheck, Loader2 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
-const API = import.meta.env.VITE_API_URL;
+
+
 const QRScannerSection = ({ onMovement }) => {
   const [visitor, setVisitor] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -32,7 +33,7 @@ const QRScannerSection = ({ onMovement }) => {
             setLoading(true);
             try {
               // Standardized endpoint
-              const res = await axios.get(` ${API}/securitycheck/${text}`);
+              const res = await axios.get(`https://gatekeeper-05sf.onrender.com/securitycheck/${text}`);
               if (res.data.success) {
                 setVisitor({ ...res.data.visitor, refId: text });
                 setIsVerifying(true);

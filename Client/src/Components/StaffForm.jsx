@@ -15,7 +15,7 @@ const StaffForm = ({ onClose, onSuccess }) => {
     e.preventDefault();
     
     try {
-      const response = await axios.post(`${API}/staff/register`, formData);
+      const response = await axios.post(`https://gatekeeper-05sf.onrender.com/staff/register`, formData);
       const result = response.data;
 
       if (result.success) {

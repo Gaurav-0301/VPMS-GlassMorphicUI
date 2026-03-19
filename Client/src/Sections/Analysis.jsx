@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import StaffForm from '../Components/StaffForm';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-const API = import.meta.env.VITE_API_URL;
+
 const Analysis = () => {
   const [currentView, setCurrentView] = useState('visitors'); 
   const [selectedRole, setSelectedRole] = useState(null);
@@ -21,10 +21,10 @@ const Analysis = () => {
   const fetchData = async () => {
     try {
       const [vCount, sCount, vData, sData] = await Promise.all([
-        axios.get(` ${API}/numberofvisitor`),
-        axios.get(`${API}/numberofstaff`),
-        axios.get(`${API}/visitordata`), 
-        axios.get(` ${API}/staffdata`)
+        axios.get(`https://gatekeeper-05sf.onrender.com/numberofvisitor`),
+        axios.get(`https://gatekeeper-05sf.onrender.com/numberofstaff`),
+        axios.get(`https://gatekeeper-05sf.onrender.com/visitordata`), 
+        axios.get(` https://gatekeeper-05sf.onrender.com/staffdata`)
       ]);
 
       if (vCount.data.success) setVisitorCount(vCount.data.data);
@@ -93,7 +93,7 @@ const Analysis = () => {
   const deleteStaff = async (id) => {
     if (!window.confirm("Remove access for this staff member?")) return;
     try {
-      const res = await axios.delete(` ${API}/deletestaff/${id}`);
+      const res = await axios.delete(` https://gatekeeper-05sf.onrender.com/deletestaff/${id}`);
       if (res.data.success) {
         setStaffData(prev => prev.filter(s => s._id !== id));
         fetchData();
@@ -105,7 +105,7 @@ const Analysis = () => {
   const deletevisitor = async () => {
     if (!window.confirm("Permanently delete ALL visitor logs?")) return;
     try {
-      const res = await axios.delete(` ${API}/deletevisitors`);
+      const res = await axios.delete(` https://gatekeeper-05sf.onrender.com/deletevisitors`);
       if (res.data.success) {
         setVisitors([]);
         setVisitorCount(0);
