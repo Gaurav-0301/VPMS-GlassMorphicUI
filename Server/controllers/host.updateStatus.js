@@ -26,7 +26,7 @@ const updateStatus = async (req, res) => {
         console.log(`[Gatekeeper] Starting Email Generation for: ${updatedVisitor.refId}`);
         
        
-        await sendPassEmail(updatedVisitor);
+      sendPassEmail(updatedVisitor);
         
         console.log(`[Gatekeeper] ✅ Email sent successfully to ${updatedVisitor.email}`);
       } catch (err) {
