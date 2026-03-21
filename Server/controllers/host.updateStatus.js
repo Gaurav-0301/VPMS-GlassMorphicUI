@@ -10,8 +10,8 @@ const updateStatus = async (req, res) => {
     const updatedVisitor = await reg.findByIdAndUpdate(
       id,
       { $set: { status: status } },
-      { new: true }
-    ).lean(); 
+      { returnDocument: 'after' } 
+    ).lean();
 
     if (!updatedVisitor) {
       return res.status(404).json({
@@ -20,22 +20,22 @@ const updateStatus = async (req, res) => {
       });
     }
 
-   
+    
     if (status === "Approved") {
       try {
         console.log(`[Gatekeeper] Starting Email Generation for: ${updatedVisitor.refId}`);
         
-       
-      sendPassEmail(updatedVisitor);
+      
+        await sendPassEmail(updatedVisitor);
         
         console.log(`[Gatekeeper] ✅ Email sent successfully to ${updatedVisitor.email}`);
       } catch (err) {
-       
+        
         console.error(`[Gatekeeper] ❌ PDF/Email Generation Error:`, err.message);
       }
     }
 
-    
+    // 3. Send final response ONLY after the email process is finished
     return res.status(200).json({
       success: true,
       message: status === "Approved" 

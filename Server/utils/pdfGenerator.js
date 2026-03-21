@@ -10,20 +10,21 @@ const dataURIToBuffer = (dataURI) => {
 
 const sendPassEmail = async (visitor) => {
     
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        auth: { 
-            user: process.env.EMAIL_USER, 
-            pass: process.env.EMAIL_PASS 
-        },
-        tls: {
-            rejectUnauthorized: false // Helps avoid handshake errors in production
-        }
-    });
-
+   const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: { 
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS 
+    },
+    
+    family: 4, 
+    tls: {
+        rejectUnauthorized: false
+    }
+});
     // 2. Wrap in Promise correctly
     return new Promise(async (resolve, reject) => {
         try {
