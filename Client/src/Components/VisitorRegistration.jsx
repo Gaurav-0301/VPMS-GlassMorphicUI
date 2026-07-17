@@ -39,26 +39,37 @@ const VisitorRegistration = () => {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "user" }, 
+        video: { 
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        }, 
         audio: false 
       });
+      
       setIsStreaming(true);
-      setTimeout(() => {
+      
+      requestAnimationFrame(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play();
+          videoRef.current.play().catch(err => {
+            console.error("Video element playback interrupted:", err);
+          });
         }
-      }, 150);
+      });
     } catch (err) {
-      toast.error("Camera access denied. Please check browser permissions.");
+      console.error("Camera Error:", err);
+      toast.error("Camera access denied. Ensure you are using HTTPS and have granted permissions.");
     }
   };
 
   const stopCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-      setIsStreaming(false);
+      const stream = videoRef.current.srcObject;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
     }
+    setIsStreaming(false);
   };
 
   const capturePhoto = () => {
@@ -68,8 +79,11 @@ const VisitorRegistration = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
+      
+      // Mirror flip composition for natural selfie perspective
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
+      
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       setPhoto(canvas.toDataURL('image/jpeg', 0.7)); 
       stopCamera();
@@ -111,13 +125,7 @@ const VisitorRegistration = () => {
   };
 
   return (
-    // min-h-screen ensures space on mobile, h-screen forces viewport height on desktop
     <div className="min-h-screen md:h-screen w-full bg-gray-100 flex items-center justify-center p-2 sm:p-4 text-black">
-      
-      {/* 
-        flex-col-reverse puts the second child (Camera) on top for small screens.
-        h-auto on mobile prevents cutting content off, md:h-[85vh] for desktop.
-      */}
       <div className="bg-white w-full max-w-5xl rounded-3xl shadow-xl flex flex-col-reverse md:flex-row overflow-hidden h-auto md:h-[85vh]">
         
         {/* Left Side: Form Details */}
@@ -125,7 +133,6 @@ const VisitorRegistration = () => {
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Visitor Registration</h2>
           
           <form onSubmit={handleRegister} className="space-y-4">
-            {/* Grid drops to 1 column on mobile to save layout spacing */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <InputField label="Full Name" icon={<User size={16}/>} value={formData.name} onChange={v => setFormData({...formData, name: v})} />
               <InputField label="Phone Number" icon={<Phone size={16}/>} value={formData.number} onChange={v => setFormData({...formData, number: v})} />
@@ -134,7 +141,8 @@ const VisitorRegistration = () => {
             <div className="flex flex-col gap-1">
               <label className="text-xs font-bold text-gray-500 uppercase ml-1">Select Host</label>
               <select 
-                required className="p-3 bg-gray-50 border rounded-xl outline-none focus:border-blue-500 w-full"
+                required 
+                className="p-3 bg-gray-50 border rounded-xl outline-none focus:border-blue-500 w-full"
                 value={formData.hostId} 
                 onChange={e => {
                   const h = hosts.find(x => x._id === e.target.value);
@@ -155,18 +163,22 @@ const VisitorRegistration = () => {
           </form>
         </div>
 
-        {/* Right Side: Camera Section (Placed first visually on mobile screens) */}
+        {/* Right Side: Camera Section */}
         <div className="w-full md:w-[40%] bg-gray-900 flex flex-col items-center justify-center p-6 sm:p-8 border-b md:border-b-0 md:border-l border-gray-800">
           <div className="w-full aspect-square max-w-[200px] sm:max-w-[280px] bg-gray-800 rounded-full border-4 border-gray-700 overflow-hidden flex items-center justify-center relative shadow-inner">
-            {photo ? <img src={photo} alt="Visitor" className="w-full h-full object-cover" /> : 
-             isStreaming ? <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" /> : 
-             <Camera size={40} className="text-gray-600" />}
+            {photo ? (
+              <img src={photo} alt="Visitor" className="w-full h-full object-cover" />
+            ) : isStreaming ? (
+              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+            ) : (
+              <Camera size={40} className="text-gray-600" />
+            )}
           </div>
           
           <div className="mt-4 sm:mt-6">
-            {!isStreaming && !photo && <button onClick={startCamera} className="bg-white text-black px-6 py-2 rounded-full font-bold text-sm transition-all active:scale-95">Open Camera</button>}
-            {isStreaming && <button onClick={capturePhoto} className="bg-green-500 text-white px-8 py-2 rounded-full font-bold text-sm transition-all active:scale-95">Capture</button>}
-            {photo && <button onClick={() => { setPhoto(null); startCamera(); }} className="text-gray-400 flex items-center gap-2 text-sm hover:text-white transition-all"><RefreshCcw size={14} /> Retake</button>}
+            {!isStreaming && !photo && <button type="button" onClick={startCamera} className="bg-white text-black px-6 py-2 rounded-full font-bold text-sm transition-all active:scale-95">Open Camera</button>}
+            {isStreaming && <button type="button" onClick={capturePhoto} className="bg-green-500 text-white px-8 py-2 rounded-full font-bold text-sm transition-all active:scale-95">Capture</button>}
+            {photo && <button type="button" onClick={() => { setPhoto(null); startCamera(); }} className="text-gray-400 flex items-center gap-2 text-sm hover:text-white transition-all"><RefreshCcw size={14} /> Retake</button>}
           </div>
           <canvas ref={canvasRef} className="hidden" />
         </div>
