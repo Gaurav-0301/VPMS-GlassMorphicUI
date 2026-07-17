@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
-import { Camera, User, Phone, Mail, BookOpen, RefreshCcw } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import React, { useState, useRef, useEffect } from "react";
+import Webcam from "react-webcam";
+import axios from "axios";
+import { Camera, User, Phone, Mail, BookOpen, RefreshCcw } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const VisitorRegistration = () => {
   const [formData, setFormData] = useState({
@@ -15,11 +16,12 @@ const VisitorRegistration = () => {
 
   const [photo, setPhoto] = useState(null);
   const [hosts, setHosts] = useState([]);
-  const [isStreaming, setIsStreaming] = useState(false);
+  
   const [loading, setLoading] = useState(false);
 
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+  const webcamRef = useRef(null);
+
+const [cameraOpen, setCameraOpen] = useState(false);
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -33,72 +35,32 @@ const VisitorRegistration = () => {
       }
     };
     fetchStaff();
-    return () => stopCamera();
+    return () => {};
   }, []);
 
-  const startCamera = async () => {
-    try {
-      // Streamlining constraints for high mobile compatibility
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: "user"
-        }, 
-        audio: false 
-      });
-      
-      setIsStreaming(true);
-      
-      // Giving the DOM a clean window tick to catch up before assignment
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          
-          // explicit play assurance for mobile browsers running low-power modes
-          const playPromise = videoRef.current.play();
-          if (playPromise !== undefined) {
-            playPromise.catch(err => {
-              console.error("Autoplay engine blocked stream:", err);
-            });
-          }
-        }
-      }, 50);
+  
+const capturePhoto = () => {
+  if (!webcamRef.current) {
+    toast.error("Camera not ready");
+    return;
+  }
 
-    } catch (err) {
-      console.error("Camera Error:", err);
-      toast.error("Camera access failed. Check permissions and ensure you are on a secure (HTTPS) link.");
-    }
-  };
+  const imageSrc = webcamRef.current.getScreenshot();
 
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setIsStreaming(false);
-  };
+  if (!imageSrc) {
+    toast.error("Unable to capture image");
+    return;
+  }
 
-  const capturePhoto = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (video && canvas) {
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      const ctx = canvas.getContext('2d');
-      
-      // Mirror flip composition for natural selfie perspective
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-      
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      setPhoto(canvas.toDataURL('image/jpeg', 0.7)); 
-      stopCamera();
-    }
-  };
+  setPhoto(imageSrc);
+  setCameraOpen(false);
+};
+ 
+
+  
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    
     if (!photo) return toast.error("A visitor photo is required!");
     if (!formData.hostId) return toast.error("Please select a host!");
 
@@ -115,16 +77,14 @@ const VisitorRegistration = () => {
       };
 
       const res = await axios.post(`https://gatekeeper-05sf.onrender.com/register`, payload);
-      
       if (res.data.success) {
         toast.success("Success! Reference ID: " + res.data.data.refId);
         setFormData({ name: '', number: '', purpose: '', hostId: '', hostName: '', email: '' });
         setPhoto(null);
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Registration failed. Check your connection.";
+      const errorMsg = err.response?.data?.message || "Registration failed.";
       toast.error(errorMsg);
-      console.error("Submission Error:", err.response?.data);
     } finally {
       setLoading(false);
     }
@@ -170,31 +130,83 @@ const VisitorRegistration = () => {
         </div>
 
         {/* Right Side: Camera Section */}
-        <div className="w-full md:w-[40%] bg-gray-900 flex flex-col items-center justify-center p-6 sm:p-8 border-b md:border-b-0 md:border-l border-gray-800">
-          <div className="w-full aspect-square max-w-[200px] sm:max-w-[280px] bg-gray-800 rounded-full border-4 border-gray-700 overflow-hidden flex items-center justify-center relative shadow-inner">
-            {photo ? (
-              <img src={photo} alt="Visitor" className="w-full h-full object-cover" />
-            ) : isStreaming ? (
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                webkit-playsinline="true"
-                muted 
-                className="w-full h-full object-cover scale-x-[-1]" 
-              />
-            ) : (
-              <Camera size={40} className="text-gray-600" />
-            )}
-          </div>
-          
-          <div className="mt-4 sm:mt-6">
-            {!isStreaming && !photo && <button type="button" onClick={startCamera} className="bg-white text-black px-6 py-2 rounded-full font-bold text-sm transition-all active:scale-95">Open Camera</button>}
-            {isStreaming && <button type="button" onClick={capturePhoto} className="bg-green-500 text-white px-8 py-2 rounded-full font-bold text-sm transition-all active:scale-95">Capture</button>}
-            {photo && <button type="button" onClick={() => { setPhoto(null); startCamera(); }} className="text-gray-400 flex items-center gap-2 text-sm hover:text-white transition-all"><RefreshCcw size={14} /> Retake</button>}
-          </div>
-          <canvas ref={canvasRef} className="hidden" />
-        </div>
+       <div className="w-full md:w-[40%] bg-gray-900 flex flex-col items-center justify-center p-6 sm:p-8">
+
+  <div className="w-full aspect-square max-w-[280px] rounded-full overflow-hidden bg-gray-800 border-4 border-gray-700 flex items-center justify-center relative">
+
+    {photo ? (
+      <img
+        src={photo}
+        alt="Visitor"
+        className="w-full h-full object-cover"
+      />
+    ) : cameraOpen ? (
+     <Webcam
+  ref={webcamRef}
+  audio={false}
+  mirrored
+  screenshotFormat="image/jpeg"
+  screenshotQuality={0.8}
+  videoConstraints={{
+    facingMode: { ideal: "user" },
+    width: { ideal: 640 },
+    height: { ideal: 480 },
+  }}
+  onUserMedia={() => {
+    console.log("Camera started");
+    toast.success("Camera started");
+  }}
+  onUserMediaError={(err) => {
+    console.error(err);
+    toast.error(err.message || "Unable to access camera");
+  }}
+  className="w-full h-full object-cover"
+/>
+    ) : (
+      <Camera size={45} className="text-gray-500" />
+    )}
+
+  </div>
+
+  <div className="mt-6">
+
+    {!cameraOpen && !photo && (
+      <button
+        type="button"
+        onClick={() => setCameraOpen(true)}
+        className="bg-white text-black px-6 py-2 rounded-full font-bold"
+      >
+        Open Camera
+      </button>
+    )}
+
+    {cameraOpen && (
+      <button
+        type="button"
+        onClick={capturePhoto}
+        className="bg-green-600 text-white px-8 py-2 rounded-full font-bold"
+      >
+        Capture
+      </button>
+    )}
+
+    {photo && (
+      <button
+        type="button"
+        onClick={() => {
+          setPhoto(null);
+          setCameraOpen(true);
+        }}
+        className="text-gray-300 flex items-center gap-2 mt-2"
+      >
+        <RefreshCcw size={15} />
+        Retake
+      </button>
+    )}
+
+  </div>
+
+</div>
 
       </div>
     </div>
