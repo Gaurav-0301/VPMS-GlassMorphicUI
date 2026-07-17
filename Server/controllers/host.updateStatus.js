@@ -19,27 +19,20 @@ const updateStatus = async (req, res) => {
       });
     }
 
-    // Safely await the email process if status is Approved
+    // Fire-and-forget background task: The API will NOT wait for this to finish
     if (status === "Approved") {
-      try {
-        console.log(`[Gatekeeper] Starting Email Generation for: ${updatedVisitor.refId}`);
-        
-        // Await here ensures the step finishes before moving to the response
-        await sendPassEmail(updatedVisitor);
-        
-        console.log(`[Gatekeeper] ✅ Email sent successfully for: ${updatedVisitor.refId}`);
-      } catch (err) {
-        // If Nodemailer times out on Render, this block intercepts it perfectly.
-        // The server remains completely safe, and the script moves on.
-        console.error(`[Gatekeeper] ❌ PDF/Email Generation Error:`, err.message);
-      }
+      console.log(`[Gatekeeper] Offloading Email Generation to background for: ${updatedVisitor.refId}`);
+      
+      sendPassEmail(updatedVisitor)
+        .then(() => console.log(`[Gatekeeper] ✅ Background Email sent successfully for: ${updatedVisitor.refId}`))
+        .catch((err) => console.error(`[Gatekeeper] ❌ Background Email Error:`, err.message));
     }
 
-    // 3. Send final response after the email block completes or handles its errors
+    // This response returns instantly now!
     return res.status(200).json({
       success: true,
       message: status === "Approved" 
-        ? `Pass approved and processed for ${updatedVisitor.email}` 
+        ? `Pass approved successfully. Pass is being generated and emailed.` 
         : `Status updated to ${status} successfully`,
       data: updatedVisitor
     });
