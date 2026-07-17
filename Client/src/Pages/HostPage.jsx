@@ -8,28 +8,32 @@ import toast from 'react-hot-toast';
 const HostPage = () => {
   const [visitors, setVisitors] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
+  // New state to track which visitor's status is being updated
+  const [loadingId, setLoadingId] = useState(null);
 
   // Fetch only visitors assigned to THIS host
- useEffect(() => {
-  const fetchVisitorData = async () => {
-    try {
-      // 1. Grab the ID we saved during Login
-      const currentHostId = localStorage.getItem("userId");
+  useEffect(() => {
+    const fetchVisitorData = async () => {
+      try {
+        // 1. Grab the ID we saved during Login
+        const currentHostId = localStorage.getItem("userId");
 
-      // 2. Attach it to the request so the backend knows who is asking
-      const response = await axios.get(` https://gatekeeper-05sf.onrender.com/visitordata?hostId=${currentHostId}`);
-      
-      if (response.data.success) {
-        setVisitors(response.data.data);
+        // 2. Attach it to the request so the backend knows who is asking
+        const response = await axios.get(`https://gatekeeper-05sf.onrender.com/visitordata?hostId=${currentHostId}`);
+        
+        if (response.data.success) {
+          setVisitors(response.data.data);
+        }
+      } catch (error) {
+        console.error("Visitor data error in hostpage:", error);
       }
-    } catch (error) {
-      console.error("Visitor data error in hostpage:", error);
-    }
-  };
-  fetchVisitorData();
-}, []);
+    };
+    fetchVisitorData();
+  }, []);
 
   const handleStatusUpdate = async (id, newStatus) => {
+    // Set the current visitor ID as loading
+    setLoadingId(id);
     try {
       const response = await axios.put(`https://gatekeeper-05sf.onrender.com/statusupdate/${id}`, { 
         status: newStatus 
@@ -41,12 +45,17 @@ const HostPage = () => {
         );
         
         if (newStatus === "Approved") {
-        toast.success("Meeting approved! Mail sent to visitor.");
+          toast.success("Meeting approved! Mail sent to visitor.");
+        } else if (newStatus === "Rejected") {
+          toast.success("Meeting request declined.");
         }
       }
     } catch (error) {
       console.error("handleStatus error:", error);
       toast.error("Failed to update status. Please try again.");
+    } finally {
+      // Clear loading state after getting the response or hitting an error
+      setLoadingId(null);
     }
   };
 
@@ -71,6 +80,7 @@ const HostPage = () => {
           <PendingView 
             visitors={visitors.filter(v => v.status === 'Pending')} 
             onAction={handleStatusUpdate} 
+            loadingId={loadingId} // Pass down loadingId to the view
           />
         ) : (
           <HistoryView 
