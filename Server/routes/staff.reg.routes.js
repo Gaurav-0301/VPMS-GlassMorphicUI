@@ -4,6 +4,6 @@ const {createStaff,loginStaff,logoutStaff}=require('../controllers/Staff.registr
 
 regRouter.post("/staff/register",createStaff);
 regRouter.post("/staff/login",loginStaff);
-regRouter.post("/staff/login",logoutStaff);
+regRouter.post("/staff/logout",logoutStaff);
 
 module.exports=regRouter;
