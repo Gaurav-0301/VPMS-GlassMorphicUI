@@ -38,28 +38,34 @@ const VisitorRegistration = () => {
 
   const startCamera = async () => {
     try {
+      // Streamlining constraints for high mobile compatibility
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          facingMode: "user",
-          width: { ideal: 640 },
-          height: { ideal: 480 }
+          facingMode: "user"
         }, 
         audio: false 
       });
       
       setIsStreaming(true);
       
-      requestAnimationFrame(() => {
+      // Giving the DOM a clean window tick to catch up before assignment
+      setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(err => {
-            console.error("Video element playback interrupted:", err);
-          });
+          
+          // explicit play assurance for mobile browsers running low-power modes
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(err => {
+              console.error("Autoplay engine blocked stream:", err);
+            });
+          }
         }
-      });
+      }, 50);
+
     } catch (err) {
       console.error("Camera Error:", err);
-      toast.error("Camera access denied. Ensure you are using HTTPS and have granted permissions.");
+      toast.error("Camera access failed. Check permissions and ensure you are on a secure (HTTPS) link.");
     }
   };
 
@@ -76,8 +82,8 @@ const VisitorRegistration = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (video && canvas) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
       const ctx = canvas.getContext('2d');
       
       // Mirror flip composition for natural selfie perspective
@@ -169,7 +175,14 @@ const VisitorRegistration = () => {
             {photo ? (
               <img src={photo} alt="Visitor" className="w-full h-full object-cover" />
             ) : isStreaming ? (
-              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                webkit-playsinline="true"
+                muted 
+                className="w-full h-full object-cover scale-x-[-1]" 
+              />
             ) : (
               <Camera size={40} className="text-gray-600" />
             )}
