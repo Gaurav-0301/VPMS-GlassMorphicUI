@@ -10,27 +10,26 @@ const dataURIToBuffer = (dataURI) => {
 };
 
 const sendPassEmail = async (visitor) => {
-    // Configured with IPv4 enforcement to bypass Render network routing issues
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false, 
-        auth: { 
-            user: process.env.EMAIL_USER, 
-            pass: process.env.EMAIL_PASS 
-        },
-        family: 4, // Explicitly request IPv4
-        dnsLookup: (hostname, options, callback) => {
-            return dns.lookup(hostname, { family: 4 }, callback); // Forces IPv4 resolution
-        },
-        connectionTimeout: 10000, 
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
-        tls: {
-            rejectUnauthorized: false,
-            servername: 'smtp.gmail.com' 
-        }
-    });
+    
+   const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,         
+    secure: true,     
+    auth: { 
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS 
+    },
+    family: 4, 
+    dnsLookup: (hostname, options, callback) => {
+        return dns.lookup(hostname, { family: 4 }, callback);
+    },
+    connectionTimeout: 15000, 
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
+    tls: {
+        rejectUnauthorized: false
+    }
+});
 
     // STEP 1: Fully generate assets before starting the PDF layout
     let qrBuffer = null;
