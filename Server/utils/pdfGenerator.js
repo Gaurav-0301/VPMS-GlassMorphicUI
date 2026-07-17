@@ -1,6 +1,7 @@
 const PDFDocument = require('pdfkit');
 const nodemailer = require('nodemailer');
 const QRCode = require('qrcode');
+const dns = require('dns');
 
 const dataURIToBuffer = (dataURI) => {
     if (!dataURI) return null;
@@ -9,7 +10,7 @@ const dataURIToBuffer = (dataURI) => {
 };
 
 const sendPassEmail = async (visitor) => {
-    // Configured for reliability on cloud containers (Render)
+    // Configured with IPv4 enforcement to bypass Render network routing issues
     const transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 587,
@@ -18,8 +19,11 @@ const sendPassEmail = async (visitor) => {
             user: process.env.EMAIL_USER, 
             pass: process.env.EMAIL_PASS 
         },
-        family: 4, 
-        connectionTimeout: 10000, // 10s maximum wait time for connection
+        family: 4, // Explicitly request IPv4
+        dnsLookup: (hostname, options, callback) => {
+            return dns.lookup(hostname, { family: 4 }, callback); // Forces IPv4 resolution
+        },
+        connectionTimeout: 10000, 
         greetingTimeout: 10000,
         socketTimeout: 15000,
         tls: {
@@ -28,7 +32,25 @@ const sendPassEmail = async (visitor) => {
         }
     });
 
-    // STEP 1: Generate PDF completely independent of mail transporter
+    // STEP 1: Fully generate assets before starting the PDF layout
+    let qrBuffer = null;
+    try {
+        const qrCodeDataUrl = await QRCode.toDataURL(visitor.refId, {
+            margin: 1, 
+            width: 300, 
+            color: { dark: '#1e293b', light: '#ffffff' }
+        });
+        qrBuffer = dataURIToBuffer(qrCodeDataUrl);
+    } catch (qrErr) {
+        console.error("QR Generation failed, fallback to text pass:", qrErr);
+    }
+
+    const timestamp = new Date().toLocaleString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+    });
+
+    // STEP 2: Generate PDF safely with all data pre-resolved
     const pdfBuffer = await new Promise((resolve, reject) => {
         try {
             const doc = new PDFDocument({ size: [650, 400], margin: 0 });
@@ -37,17 +59,6 @@ const sendPassEmail = async (visitor) => {
             doc.on('data', (chunk) => buffers.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(buffers)));
             doc.on('error', (err) => reject(err));
-
-            // Generate Assets
-            const qrCodeDataUrl = QRCode.toDataURL(visitor.refId, {
-                margin: 1, width: 300, 
-                color: { dark: '#1e293b', light: '#ffffff' }
-            }).catch(() => null);
-
-            const timestamp = new Date().toLocaleString('en-IN', {
-                day: '2-digit', month: 'short', year: 'numeric',
-                hour: '2-digit', minute: '2-digit', hour12: true
-            });
 
             // --- PDF DESIGN ---
             doc.rect(0, 0, 650, 400).fill('#ffffff');
@@ -78,10 +89,10 @@ const sendPassEmail = async (visitor) => {
             doc.roundedRect(380, 90, 230, 220, 20).stroke();
             doc.restore(); 
 
-            qrCodeDataUrl.then(url => {
-                const qrBuffer = dataURIToBuffer(url);
-                if (qrBuffer) doc.image(qrBuffer, 425, 115, { width: 140 });
-            });
+            // QR Code draws cleanly now because it's already a memory buffer
+            if (qrBuffer) {
+                doc.image(qrBuffer, 425, 115, { width: 140 });
+            }
 
             doc.fillColor('#059669').fontSize(13).font('Helvetica-Bold').text('AUTHORIZED ACCESS', 380, 265, { align: 'center', width: 230 });
             doc.fillColor('#64748b').fontSize(9).font('Helvetica').text('Scan at Security Entry', 380, 285, { align: 'center', width: 230 });
@@ -96,12 +107,7 @@ const sendPassEmail = async (visitor) => {
         }
     });
 
-    // STEP 2: Dispatch Transporter with static buffer data safely
-    const currentTimestamp = new Date().toLocaleString('en-IN', {
-        day: '2-digit', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: true
-    });
-
+    // STEP 3: Dispatch email using the complete local buffer
     await transporter.sendMail({
         from: `"Gatekeeper System" <${process.env.EMAIL_USER}>`,
         to: visitor.email,
@@ -116,7 +122,7 @@ const sendPassEmail = async (visitor) => {
                     Present the QR code in the attached PDF at the security gate for quick verification.
                 </div>
                 <p style="font-size: 11px; color: #94a3b8; margin-top: 30px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-                    Issued by Gatekeeper VMS • ${currentTimestamp}
+                    Issued by Gatekeeper VMS • ${timestamp}
                 </p>
             </div>
         `,
