@@ -16,7 +16,7 @@ const VisitorRegistration = () => {
 
   const [photo, setPhoto] = useState(null);
   const [hosts, setHosts] = useState([]);
-  
+  const [cameraReady, setCameraReady] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const webcamRef = useRef(null);
@@ -40,20 +40,17 @@ const [cameraOpen, setCameraOpen] = useState(false);
 
   
 const capturePhoto = () => {
-  if (!webcamRef.current) {
-    toast.error("Camera not ready");
-    return;
-  }
+  setTimeout(() => {
+    const imageSrc = webcamRef.current?.getScreenshot();
 
-  const imageSrc = webcamRef.current.getScreenshot();
+    if (!imageSrc) {
+      toast.error("Unable to capture image");
+      return;
+    }
 
-  if (!imageSrc) {
-    toast.error("Unable to capture image");
-    return;
-  }
-
-  setPhoto(imageSrc);
-  setCameraOpen(false);
+    setPhoto(imageSrc);
+    setCameraOpen(false);
+  }, 300);
 };
  
 
@@ -142,23 +139,17 @@ const capturePhoto = () => {
         className="w-full h-full object-cover"
       />
     ) : cameraOpen ? (
-     <Webcam
+    <Webcam
   ref={webcamRef}
   audio={false}
   mirrored
   screenshotFormat="image/jpeg"
   screenshotQuality={0.8}
-  videoConstraints={{
-    facingMode: { ideal: "user" },
-    width: { ideal: 640 },
-    height: { ideal: 480 },
-  }}
   onUserMedia={() => {
-    console.log("Camera started");
+    setCameraReady(true);
     toast.success("Camera started");
   }}
   onUserMediaError={(err) => {
-    console.error(err);
     toast.error(err.message || "Unable to access camera");
   }}
   className="w-full h-full object-cover"
@@ -175,9 +166,9 @@ const capturePhoto = () => {
   <button
   type="button"
   onPointerUp={() => {
-    console.log("pointer up");
-    setCameraOpen(true);
-  }}
+  setCameraReady(false);
+  setCameraOpen(true);
+}}
   className="bg-white text-black px-6 py-2 rounded-full font-bold touch-manipulation"
 >
   Open Camera
@@ -187,8 +178,9 @@ const capturePhoto = () => {
     {cameraOpen && (
 <button
   type="button"
+  disabled={!cameraReady}
   onPointerUp={capturePhoto}
-  className="bg-green-600 text-white px-8 py-2 rounded-full font-bold touch-manipulation"
+  className="bg-green-600 text-white px-8 py-2 rounded-full font-bold disabled:opacity-50"
 >
   Capture
 </button>
