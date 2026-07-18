@@ -91,7 +91,7 @@ const capturePhoto = () => {
   };
 
   return (
-    <div className="min-h-dvh w-full  bg-gray-100 flex items-center justify-center p-2 sm:p-4 text-black">
+    <div className="min-h-dvh w-full bg-gray-100 flex items-center justify-center p-2 sm:p-4 text-black relative z-20">
       <div className="bg-white w-full max-w-5xl rounded-3xl shadow-xl flex flex-col-reverse md:flex-row overflow-hidden h-auto md:h-[85vh]">
         
         {/* Left Side: Form Details */}
@@ -172,29 +172,22 @@ const capturePhoto = () => {
   <div className="mt-6">
 
     {!cameraOpen && !photo && (
-     <button
+  <button
   type="button"
-  onClick={() => {
-    alert("Button clicked");
+  onPointerUp={() => {
+    console.log("pointer up");
     setCameraOpen(true);
   }}
-  style={{
-    position: "relative",
-    zIndex: 9999,
-  }}
-  className="bg-white text-black px-6 py-2 rounded-full font-bold"
+  className="bg-white text-black px-6 py-2 rounded-full font-bold touch-manipulation"
 >
   Open Camera
 </button>
     )}
 
     {cameraOpen && (
-     <button
+<button
   type="button"
-  onPointerDown={(e) => {
-    e.preventDefault();
-    capturePhoto();
-  }}
+  onPointerUp={capturePhoto}
   className="bg-green-600 text-white px-8 py-2 rounded-full font-bold touch-manipulation"
 >
   Capture
