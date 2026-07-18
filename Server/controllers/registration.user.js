@@ -1,11 +1,18 @@
 const Reg = require('../models/Registration.model');
 
 const createRegistration = async (req, res) => {
-    // 1. Extract hostId along with other fields
+    
     const { name, purpose, number, host, hostId, email, url } = req.body;
 
     try {
-        // 2. Pass hostId to the creation object
+        const uniqueNum=await Reg.findOne({number: number})
+        if(uniqueNum){
+         return res.status(401).json({
+            success: false,
+            message: "Number Already Exist !!",
+            data: newVisitor
+        });
+        }
         const newVisitor = await Reg.create({
             name,
             purpose,
