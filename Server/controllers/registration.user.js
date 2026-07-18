@@ -10,7 +10,7 @@ const createRegistration = async (req, res) => {
          return res.status(401).json({
             success: false,
             message: "Number Already Exist !!",
-            data: newVisitor
+           
         });
         }
         const newVisitor = await Reg.create({
@@ -38,7 +38,7 @@ const createRegistration = async (req, res) => {
     }
 };
 
-module.exports = { createRegistration };
+
 const registrationStatus = async (req, res) => {
   const { number } = req.params;
 
