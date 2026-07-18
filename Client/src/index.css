@@ -15,3 +15,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}

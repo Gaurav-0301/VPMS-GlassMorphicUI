@@ -91,7 +91,7 @@ const capturePhoto = () => {
   };
 
   return (
-    <div className="min-h-screen md:h-screen w-full bg-gray-100 flex items-center justify-center p-2 sm:p-4 text-black">
+    <div className="min-h-dvh w-full  bg-gray-100 flex items-center justify-center p-2 sm:p-4 text-black">
       <div className="bg-white w-full max-w-5xl rounded-3xl shadow-xl flex flex-col-reverse md:flex-row overflow-hidden h-auto md:h-[85vh]">
         
         {/* Left Side: Form Details */}
@@ -132,7 +132,8 @@ const capturePhoto = () => {
         {/* Right Side: Camera Section */}
        <div className="w-full md:w-[40%] bg-gray-900 flex flex-col items-center justify-center p-6 sm:p-8">
 
-  <div className="w-full aspect-square max-w-[280px] rounded-full overflow-hidden bg-gray-800 border-4 border-gray-700 flex items-center justify-center relative">
+  <div className="relative w-full aspect-square max-w-[280px] rounded-full overflow-hidden">
+
 
     {photo ? (
       <img
@@ -171,23 +172,33 @@ const capturePhoto = () => {
   <div className="mt-6">
 
     {!cameraOpen && !photo && (
-      <button
-        type="button"
-        onClick={() => setCameraOpen(true)}
-        className="bg-white text-black px-6 py-2 rounded-full font-bold"
-      >
-        Open Camera
-      </button>
+     <button
+  type="button"
+  onClick={() => {
+    alert("Button clicked");
+    setCameraOpen(true);
+  }}
+  style={{
+    position: "relative",
+    zIndex: 9999,
+  }}
+  className="bg-white text-black px-6 py-2 rounded-full font-bold"
+>
+  Open Camera
+</button>
     )}
 
     {cameraOpen && (
-      <button
-        type="button"
-        onClick={capturePhoto}
-        className="bg-green-600 text-white px-8 py-2 rounded-full font-bold"
-      >
-        Capture
-      </button>
+     <button
+  type="button"
+  onPointerDown={(e) => {
+    e.preventDefault();
+    capturePhoto();
+  }}
+  className="bg-green-600 text-white px-8 py-2 rounded-full font-bold touch-manipulation"
+>
+  Capture
+</button>
     )}
 
     {photo && (
